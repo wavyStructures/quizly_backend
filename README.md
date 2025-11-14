@@ -1,4 +1,4 @@
-# 🎬 Videoflix Backend
+# 🎬 Quizly Backend
 
 ![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)  
 ![Django](https://img.shields.io/badge/Django-5.0-green?logo=django&logoColor=white)  
