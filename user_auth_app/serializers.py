@@ -4,9 +4,6 @@ from django.core.mail import send_mail
 
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
 
 
 User = get_user_model()
@@ -17,12 +14,12 @@ class UserSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = ['id', 'email']
+        fields = ['id', 'email', 'username']
         
 
 class RegistrationSerializer(serializers.ModelSerializer):
     """
-    Serializer for registering new users. Creating a new inactive user account (email confirmation required).
+    Serializer for registering new users. Creating a new active user account.
     """
 
     confirmed_password = serializers.CharField(write_only=True)
@@ -49,8 +46,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         validated_data.pop("confirmed_password")
         return User.objects.create_user(
             email=validated_data["email"],
-            password=validated_data["password"],
-            is_active=False,  
+            password=validated_data["password"]  
         )
 
 
@@ -58,13 +54,13 @@ class LoginSerializer(serializers.Serializer):
     """
     Serializer for authenticating users.
     """
+
     email = serializers.CharField()
     password = serializers.CharField(write_only=True)
     
     def validate(self, attrs):
         email = attrs.get('email')
         password = attrs.get('password')
-
         user = authenticate(username=email, password=password)
         if not user:
             raise serializers.ValidationError("Invalid email or password.")
