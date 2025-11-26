@@ -1,21 +1,34 @@
 from rest_framework import serializers
-from .models import Video
+from .models import Quiz, Question
 
-class VideoSerializer(serializers.ModelSerializer):
-    """
-    Serializer for the Video model. Exposes all fields of the Video model
-    """
-    thumbnail_url = serializers.SerializerMethodField()
+
+class QuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = [
+            "id",
+            "question_title",
+            "question_options",
+            "answer",
+            "created_at",
+            "updated_at",
+        ]
+
+class QuizSerializer(serializers.ModelSerializer):
+    questions = QuestionSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Video
-        fields = ["id", "created_at", "title", "description", "thumbnail_url", "category",]
+        model = Quiz
+        fields = [
+            "id",
+            "title",
+            "description",
+            "created_at",
+            "updated_at",
+            "video_url",
+            "questions",
+        ]
 
-    def get_thumbnail_url(self, obj):
-        request = self.context.get("request")
-        if obj.thumbnail and hasattr(obj.thumbnail, "url"):
-            return request.build_absolute_uri(obj.thumbnail.url)
-        return ""
 
-
-
+class CreateQuizSerializer(serializers.Serializer):
+    url = serializers.URLField()

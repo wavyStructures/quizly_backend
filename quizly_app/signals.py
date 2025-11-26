@@ -7,17 +7,6 @@ from .models import Video
 from .tasks import convert_to_hls, generate_thumbnail
 
 
-@receiver(post_save, sender=Video)
-def video_post_save(sender, instance, created, **kwargs):
-    """
-    Enqueue HLS conversion when a new video is uploaded.
-    """
-    if created and instance.video_file:
-        print(f"[SIGNAL] Queuing HLS pipeline for: {instance.video_file.path}")
-
-        queue = django_rq.get_queue("default")
-        queue.enqueue(run_hls_pipeline, instance.id, instance.video_file.path)
-
 
 @receiver(post_delete, sender=Video)
 def auto_delete_file_on_delete(sender, instance, **kwargs):

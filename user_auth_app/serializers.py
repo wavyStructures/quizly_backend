@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.conf import settings
-from django.core.mail import send_mail
 
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
@@ -26,14 +25,11 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'confirmed_password']
+        fields = ['username', 'password', 'confirmed_password', 'email']
         extra_kwargs = {
-            'password': {
-                'write_only': True
-            },
-            'email': {
-                'required': True
-            }
+            'password': {'write_only': True},
+            'email': {'required': True},
+            'username': {'required': True}
         }
 
     def validate(self, data):
@@ -45,6 +41,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop("confirmed_password")
         return User.objects.create_user(
+            username=validated_data["username"],
             email=validated_data["email"],
             password=validated_data["password"]  
         )
@@ -55,18 +52,16 @@ class LoginSerializer(serializers.Serializer):
     Serializer for authenticating users.
     """
 
-    email = serializers.CharField()
+    username = serializers.CharField()
     password = serializers.CharField(write_only=True)
     
     def validate(self, attrs):
-        email = attrs.get('email')
+        username = attrs.get('username')
         password = attrs.get('password')
-        user = authenticate(username=email, password=password)
+        
+        user = authenticate(username=username, password=password)
         if not user:
-            raise serializers.ValidationError("Invalid email or password.")
-
-        if not user.is_active:
-            raise serializers.ValidationError("Account is inactive. Please activate via email first.")
+            raise serializers.ValidationError("Invalid username or password.")
 
         attrs["user"] = user
         return attrs

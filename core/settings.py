@@ -40,7 +40,7 @@ CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost"
 
 CORS_ALLOWED_ORIGINS = os.environ.get(
     "CORS_ALLOWED_ORIGINS",
-    "http://localhost:4200,http://127.0.0.1:5501"
+    "http://localhost:4200,http://127.0.0.1:5500, http://127.0.0.1:5501"
 ).split(",")
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_CREDENTIALS = True
@@ -162,7 +162,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Base URLs
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5501")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5500")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

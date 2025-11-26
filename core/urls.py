@@ -6,7 +6,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     path("api/", include("user_auth_app.urls")),
-    # path("api/", include("quizly_app.urls")),
+    path("api/", include("quizly_app.urls")),
 ] 
 
 
