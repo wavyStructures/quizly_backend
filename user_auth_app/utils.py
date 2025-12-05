@@ -10,7 +10,6 @@ def create_tokens_for_user(user):
     return str(refresh), str(refresh.access_token)
 
 
-
 def get_jwt_max_ages():
     """Return (access_max_age_seconds, refresh_max_age_seconds) or (None, None)
     if the corresponding SIMPLE_JWT settings are not present."""

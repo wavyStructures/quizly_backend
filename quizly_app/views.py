@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from .permissions import UserCanAccessQuiz
 from rest_framework.response import Response
 from rest_framework import status, generics
 
@@ -8,6 +9,7 @@ from .serializers import (
     QuizSerializer,
     CreateQuizSerializer
 )
+from .utils import generate_quiz_from_youtube
 
 
 class CreateQuizView(APIView):
@@ -19,22 +21,22 @@ class CreateQuizView(APIView):
 
         video_url = serializer.validated_data["url"]
 
-        # Real life: extract metadata from YouTube API
-        # Example placeholder
+        data = generate_quiz_from_youtube(video_url)
+        
         quiz = Quiz.objects.create(
             user=request.user,
-            title="Generated Quiz",
-            description="Generated from YouTube URL",
+            title=data["title"],
+            description=data["description"],
             video_url=video_url
         )
 
-        # Example static question — replace with actual extraction later
-        Question.objects.create(
-            quiz=quiz,
-            question_title="What is shown in the video?",
-            question_options=["A", "B", "C", "D"],
-            answer="A"
-        )
+        for q in data["questions"]:
+            Question.objects.create(
+                quiz=quiz,
+                question_title=q["question_title"],
+                question_options=q["question_options"],
+                answer=q["answer"]
+            )
 
         return Response(
             QuizSerializer(quiz).data,
