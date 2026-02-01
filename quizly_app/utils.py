@@ -2,8 +2,11 @@ import os
 import tempfile
 import yt_dlp
 import whisper
+import json
+import re
 from google import generativeai as genai
 from django.conf import settings
+import pprint
 
 
 def download_youtube_audio(url: str) -> str:
@@ -39,84 +42,54 @@ def transcribe_audio(audio_path: str) -> str:
     print("Whisper: finished!")
     return result["text"]
 
+def clean_gemini_json(raw_text: str) -> str:
+    """
+    Cleans Gemini output to extract valid JSON.
+    """
+    text = raw_text.strip()
 
-# def generate_questions_with_gemini(transcript: str) -> dict:
-#     """
-#     Sends the transcript to Google Gemini API to generate quiz questions.
-#     """
-
-#     genai.configure(api_key=settings.GEMINI_API_KEY)
-#     model = genai.GenerativeModel("gemini-2.0-flash")
-
-#     prompt = f"""
-#     Du bist ein Quizgenerator.
-
-#     Erstelle 5 Quizfragen basierend auf folgendem Video-Transkript:
-
-#     ---
-#     {transcript}
-#     ---
+    # Remove triple backticks
+    if text.startswith("```") and text.endswith("```"):
+        text = text[3:-3].strip()
+        # Remove optional "json" after opening ```
+        if text.lower().startswith("json"):
+            text = text[4:].strip()
     
-#     Format als JSON:
-
-#     {{
-#       "title": "string",
-#       "description": "string",
-#       "questions": [
-#         {{
-#           "question_title": "string",
-#           "question_options": ["A","B","C","D"],
-#           "answer": "string"
-#         }}
-#       ]
-#     }}
-#     """
-
-#     response = model.generate_content(prompt)
-#     return response.text
+    return text
 
 
 def generate_questions_with_gemini(transcript: str) -> dict:
-    """
-    Sends the transcript to Google Gemini API to generate quiz questions.
-    """
 
     genai.configure(api_key=settings.GEMINI_API_KEY)
+
     model = genai.GenerativeModel("gemini-2.0-flash")
 
     prompt = f"""
-    Du bist ein Quizgenerator.
+Erstelle 5 Quizfragen basierend auf folgendem Video-Transkript:
 
-    Erstelle genau 5 Quizfragen basierend auf folgendem Video-Transkript:
+---
+{transcript}
+---
 
-    ---
-    {transcript}
-    ---
-
-    Gib die Ausgabe AUSSCHLIESSLICH als gültiges JSON zurück:
-    {{
-      "title": "string",
-      "description": "string",
-      "questions": [
-        {{
-          "question_title": "string",
-          "question_options": ["A","B","C","D"],
-          "answer": "string"
-        }}
-      ]
-    }}
-
-    WICHTIG:
-    - Keine Erklärungen.
-    - Kein Markdown.
-    - Keine ```json Code-Blöcke.
-    - Keine Kommentare.
-    - KEIN Text vor oder nach dem JSON.
-    - Gib NUR das reine JSON zurück.
-    """
-
+Gib NUR gültiges JSON zurück.
+"""
     response = model.generate_content(prompt)
-    return response.text
+
+    try:
+        text = response.candidates[0].content.parts[0].text
+    except (IndexError, AttributeError):
+        raise ValueError("Gemini returned no usable text")
+
+    print("RAW GEMINI TEXT:\n", text)  # Debug
+
+    text = re.sub(r"^```json\s*|\s*```$", "", text.strip(), flags=re.IGNORECASE)
+
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as e:
+        print("CLEANED TEXT:\n", text)
+        raise ValueError("Invalid JSON from Gemini") from e
+
 
 def generate_quiz_from_youtube(url: str) -> dict:
     print("STEP 1")
@@ -131,15 +104,12 @@ def generate_quiz_from_youtube(url: str) -> dict:
     print("STEP 4", quiz_json)
 
     import json
-    # return json.loads(quiz_json)
 
-    # Debug: print the raw result
     print("RAW LLM OUTPUT:", repr(quiz_json))
 
     if not quiz_json or not quiz_json.strip():
         raise ValueError("LLM returned empty output – cannot parse.")
 
-    # Sometimes models wrap JSON inside ```json ... ```
     quiz_json_clean = quiz_json.strip()
     if quiz_json_clean.startswith("```"):
         quiz_json_clean = quiz_json_clean.strip("`")
@@ -151,24 +121,4 @@ def generate_quiz_from_youtube(url: str) -> dict:
         print("JSON parsing failed:", e)
         raise ValueError("LLM did not return valid JSON.") from e
 
-
-
-# def generate_quiz_from_youtube(url: str) -> dict:
-#     """
-#     Full pipeline:
-#     1) download audio
-#     2) transcribe
-#     3) ask Gemini to create quiz
-#     """
-
-#     audio_path = download_youtube_audio(url)
-#     transcript = transcribe_audio(audio_path)
-#     quiz_json = generate_questions_with_gemini(transcript)
-
-#     import json
-#     try:
-#         return json.loads(raw)
-#     except Exception as e:
-#         print("GEMINI RAW OUTPUT:", raw)
-#         raise e
 
