@@ -4,7 +4,7 @@ import yt_dlp
 import whisper
 import json
 import re
-from google import generativeai as genai
+from google import genai
 from django.conf import settings
 import pprint
 
@@ -23,11 +23,13 @@ def download_youtube_audio(url: str) -> str:
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])   
+        info = ydl.extract_info(url, download=True)
+        video_title = info.get("title", "YouTube Quiz")
+        # ydl.download([url])   
 
     for file in os.listdir(temp_dir):
         if file.startswith("audio"):
-            return os.path.join(temp_dir, file)
+            return os.path.join(temp_dir, file), video_title
     
     raise RuntimeError("Audio download failed.")
 
@@ -42,27 +44,19 @@ def transcribe_audio(audio_path: str) -> str:
     print("Whisper: finished!")
     return result["text"]
 
-def clean_gemini_json(raw_text: str) -> str:
-    """
-    Cleans Gemini output to extract valid JSON.
-    """
-    text = raw_text.strip()
+def clean_gemini_json(text):
+    if not text:
+        return ""
 
-    # Remove triple backticks
-    if text.startswith("```") and text.endswith("```"):
-        text = text[3:-3].strip()
-        # Remove optional "json" after opening ```
-        if text.lower().startswith("json"):
-            text = text[4:].strip()
-    
-    return text
+    text = text.strip()
 
+    text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s*```$", "", text)
 
-def generate_questions_with_gemini(transcript: str) -> dict:
+    return text.strip()
 
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-
-    model = genai.GenerativeModel("gemini-2.0-flash")
+def generate_questions_with_gemini(transcript: str, video_title: str) -> dict:
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
     prompt = f"""
 Erstelle 5 Quizfragen basierend auf folgendem Video-Transkript:
@@ -71,54 +65,70 @@ Erstelle 5 Quizfragen basierend auf folgendem Video-Transkript:
 {transcript}
 ---
 
-Gib NUR gültiges JSON zurück.
+Antworte ausschließlich mit gültigem JSON.
+Format:
+[
+  {{
+    "question": "...",
+    "options": ["A", "B", "C", "D"],
+    "answer": "A"
+  }}
+]
 """
-    response = model.generate_content(prompt)
 
-    try:
-        text = response.candidates[0].content.parts[0].text
-    except (IndexError, AttributeError):
+    response = client.models.generate_content(
+        model="models/gemini-2.5-flash",    
+        contents=prompt,
+    )
+
+    if not response.text:
         raise ValueError("Gemini returned no usable text")
 
-    print("RAW GEMINI TEXT:\n", text)  # Debug
+    print("RAW GEMINI TEXT:\n", response.text)
 
-    text = re.sub(r"^```json\s*|\s*```$", "", text.strip(), flags=re.IGNORECASE)
+    cleaned = clean_gemini_json(response.text)
 
     try:
-        return json.loads(text)
+        questions_raw = json.loads(cleaned)
     except json.JSONDecodeError as e:
-        print("CLEANED TEXT:\n", text)
+        print("CLEANED TEXT:\n", cleaned)
         raise ValueError("Invalid JSON from Gemini") from e
+
+
+    # Transform Gemini format → your DB format
+    formatted_questions = []
+
+    for q in questions_raw:
+        formatted_questions.append({
+            "question_title": q["question"],
+            "question_options": q["options"],
+            "answer": q["answer"]
+        })
+
+
+    return {
+        "title": video_title,
+        "description": f"Quiz generated from: {video_title}",
+        "questions": formatted_questions
+    }
 
 
 def generate_quiz_from_youtube(url: str) -> dict:
     print("STEP 1")
-    audio_path = download_youtube_audio(url)
+    audio_path, video_title = download_youtube_audio(url)
 
     print("STEP 2")
     transcript = transcribe_audio(audio_path)
 
     print("STEP 3")
-    quiz_json = generate_questions_with_gemini(transcript)
+    quiz_data = generate_questions_with_gemini(transcript, video_title)
 
-    print("STEP 4", quiz_json)
+    print("STEP 4", quiz_data)
 
     import json
 
-    print("RAW LLM OUTPUT:", repr(quiz_json))
+    print("FINAL QUIZ DATA:", quiz_data)
 
-    if not quiz_json or not quiz_json.strip():
-        raise ValueError("LLM returned empty output – cannot parse.")
-
-    quiz_json_clean = quiz_json.strip()
-    if quiz_json_clean.startswith("```"):
-        quiz_json_clean = quiz_json_clean.strip("`")
-        quiz_json_clean = quiz_json_clean.replace("json", "", 1).strip()
-
-    try:
-        return json.loads(quiz_json_clean)
-    except json.JSONDecodeError as e:
-        print("JSON parsing failed:", e)
-        raise ValueError("LLM did not return valid JSON.") from e
+    return quiz_data
 
 

@@ -17,11 +17,15 @@ class TestTokenRefresh:
             password="Str0ngPass!123"
         )
         login_url = reverse("login")
-        client.post(
+        response = client.post(
             login_url,
             {"username": "anja", "password": "Str0ngPass!123"},
-            content_type="application/json"
+            format="json"
         )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.cookies.get("refresh_token")
+        
         return client
 
     def test_refresh_success(self, logged_in_client):
@@ -31,7 +35,6 @@ class TestTokenRefresh:
         assert response.status_code == status.HTTP_200_OK
         assert "access" in response.data
 
-        # New cookies must be set
         assert response.cookies.get("access_token")
         assert response.cookies.get("refresh_token")
 

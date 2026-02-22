@@ -21,16 +21,16 @@ class TestLogin:
         url = reverse("login")
         data = {"username": "anja", "password": "Str0ngPass!123"}
 
-        response = client.post(url, data, content_type="application/json")
+        response = client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_200_OK
         assert "detail" in response.data
         assert response.cookies.get("access_token")
         assert response.cookies.get("refresh_token")
 
-    def test_login_wrong_credentials(self, client):
+    def test_login_wrong_credentials(self, client, user):
         url = reverse("login")
         data = {"username": "anja", "password": "wrongPass123"}
 
-        response = client.post(url, data, content_type="application/json")
+        response = client.post(url, data, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST

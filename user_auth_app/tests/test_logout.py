@@ -19,13 +19,17 @@ class TestLogout:
         )
 
         login_url = reverse("login")
-        client.post(
+        response = client.post(
             login_url,
             {"username": "anja", "password": "Str0ngPass!123"},
-            content_type="application/json"
+            format="json"
         )
 
+        assert response.status_code == status.HTTP_200_OK
+        assert response.cookies.get("refresh_token")
+
         return client
+
 
     def test_logout_success(self, logged_in_client):
         url = reverse("logout")
@@ -35,11 +39,13 @@ class TestLogout:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["detail"].startswith("Log-Out successfully")
 
-        # Cookies must be removed
         assert response.cookies.get("access_token").value == ""
         assert response.cookies.get("refresh_token").value == ""
 
+
     def test_logout_without_refresh_token(self, client):
         url = reverse("logout")
+
         response = client.post(url)
+        
         assert response.status_code == status.HTTP_401_UNAUTHORIZED

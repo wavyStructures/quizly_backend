@@ -18,7 +18,7 @@ class TestRegistration:
             "confirmed_password": "Str0ngPass!123"
         }
 
-        response = client.post(url, data, content_type="application/json")
+        response = client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["detail"] == "User created successfully!"
@@ -34,7 +34,7 @@ class TestRegistration:
             "confirmed_password": "other123"
         }
 
-        response = client.post(url, data, content_type="application/json")
+        response = client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "detail" in response.data
@@ -48,9 +48,22 @@ class TestRegistration:
             "confirmed_password": "Str0ngPass123"
         }
 
-        response = client.post(url, data, content_type="application/json")
+        response = client.post(url, data, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_register_duplicate_email(self, client):
+        url = reverse("register")
 
+        data = {
+            "username": "anja",
+            "email": "anja@example.com",
+            "password": "Str0ngPass!123",
+            "confirmed_password": "Str0ngPass!123"
+        }
+
+        client.post(url, data, format="json")
+        response = client.post(url, data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
