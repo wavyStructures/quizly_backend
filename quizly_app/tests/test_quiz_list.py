@@ -1,8 +1,9 @@
 import pytest
 from django.urls import reverse
 from rest_framework import status
-from quizly_app.models import Quiz, Question
+from quizly_app.models import Quiz
 from django.contrib.auth import get_user_model
+from rest_framework.test import APIClient
 
 User = get_user_model()
 
@@ -28,8 +29,9 @@ class TestQuizList:
 
     @pytest.fixture
     def auth_client(self, client, user):
+        client = APIClient()
         client.force_authenticate(user=user)
-        return client
+        return APIClient()
 
     @pytest.fixture
     def sample_quizzes(self, user, other_user):

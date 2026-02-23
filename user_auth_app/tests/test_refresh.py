@@ -19,14 +19,14 @@ class TestTokenRefresh:
         login_url = reverse("login")
         response = client.post(
             login_url,
-            {"username": "anja", "password": "Str0ngPass!123"},
+            {"email": "anja@example.com", "password": "Str0ngPass!123"},
             format="json"
         )
 
         assert response.status_code == status.HTTP_200_OK
         assert response.cookies.get("refresh_token")
         
-        return client
+        return APIClient()
 
     def test_refresh_success(self, logged_in_client):
         url = reverse("token_refresh")

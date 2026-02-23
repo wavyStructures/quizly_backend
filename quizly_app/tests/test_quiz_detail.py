@@ -3,6 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from quizly_app.models import Quiz
 from django.contrib.auth import get_user_model
+from rest_framework.test import APIClient
 
 User = get_user_model()
 
@@ -36,10 +37,16 @@ class TestQuizDetail:
         )
 
     @pytest.fixture
-    def auth_client(self, client, user):
+    def auth_client(self, user):
+        client = APIClient()
         client.force_authenticate(user=user)
         return client
 
+    @pytest.fixture
+    def other_auth_client(self, other_user):
+        client = APIClient()
+        client.force_authenticate(user=other_user)
+        return client
 
     # ----------------- RETRIEVE -----------------
 
@@ -50,13 +57,11 @@ class TestQuizDetail:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["title"] == "Original Title"
 
-    def test_get_other_users_quiz_denied(self, client, other_user, quiz):
-        client.force_authenticate(user=other_user)
+    def test_get_other_users_quiz_denied(self, other_auth_client, quiz):
         url = reverse("quiz_detail", args=[quiz.id])
-        response = client.get(url)
+        response = other_auth_client.get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-
 
     # ----------------- UPDATE (PATCH) -----------------
 
@@ -67,11 +72,15 @@ class TestQuizDetail:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["title"] == "Updated"
 
-    def test_patch_other_users_quiz_denied(self, client, other_user, quiz):
-        client.force_authenticate(user=other_user)
+    def test_patch_other_users_quiz_denied(self, other_auth_client, quiz):
         url = reverse("quiz_detail", args=[quiz.id])
 
-        response = client.patch(url, {"title": "SHOULD NOT"}, content_type="application/json")
+        response = other_auth_client.patch(
+            url,
+            {"title": "SHOULD NOT"},
+            content_type="application/json"
+        )
+
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -84,11 +93,11 @@ class TestQuizDetail:
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert Quiz.objects.count() == 0
 
-    def test_delete_other_users_quiz_denied(self, client, other_user, quiz):
-        client.force_authenticate(user=other_user)
+    def test_delete_other_users_quiz_denied(self, other_auth_client, quiz):
         url = reverse("quiz_detail", args=[quiz.id])
 
-        response = client.delete(url)
+        response = other_auth_client.delete(url)
+
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert Quiz.objects.count() == 1
 
