@@ -9,7 +9,7 @@ from django.conf import settings
 import pprint
 
 
-def download_youtube_audio(url: str) -> str:
+def download_youtube_audio(url: str) -> tuple[str, str]:
     """
     Downloads YouTube audio using yt_dlp and returns the path to the audio file.
     """
@@ -55,11 +55,22 @@ def clean_gemini_json(text):
 
     return text.strip()
 
+def normalize_answer(ans: str) -> str:
+    if not ans:
+        return ""
+
+    ans = ans.strip().upper()
+
+    if ans and ans[0] in ["A", "B", "C", "D"]:
+        return ans[0]
+
+    return ans
+
 def generate_questions_with_gemini(transcript: str, video_title: str) -> dict:
     client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
     prompt = f"""
-Erstelle 5 Quizfragen basierend auf folgendem Video-Transkript:
+Erstelle 5 Multiple-Choice-Quizfragen basierend auf folgendem Video-Transkript:
 
 ---
 {transcript}
@@ -70,7 +81,12 @@ Format:
 [
   {{
     "question": "...",
-    "options": ["A", "B", "C", "D"],
+    "options": [
+      "Antwort A ...",
+      "Antwort B ...",
+      "Antwort C ...",
+      "Antwort D ..."
+    ],
     "answer": "A"
   }}
 ]
@@ -99,11 +115,14 @@ Format:
     formatted_questions = []
 
     for q in questions_raw:
+        clean_answer = normalize_answer(q.get("answer", ""))
+
         formatted_questions.append({
             "question_title": q["question"],
             "question_options": q["options"],
-            "answer": q["answer"]
+            "answer": clean_answer,
         })
+
 
 
     return {
