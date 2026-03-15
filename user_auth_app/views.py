@@ -74,7 +74,7 @@ class LogoutView(APIView):
     """
     Handles user logout. Invalidates refresh token. Deletes all authentication cookies.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         refresh_token = request.COOKIES.get('refresh_token')

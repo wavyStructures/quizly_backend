@@ -124,7 +124,6 @@ Format:
         })
 
 
-
     return {
         "title": video_title,
         "description": f"Quiz generated from: {video_title}",
