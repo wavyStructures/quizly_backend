@@ -35,14 +35,19 @@ DEBUG = True
 
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "example.com").split(",")
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost").split(",")
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:5500",
+    "http://127.0.0.1:5501",
+]
 
+CORS_ALLOW_ALL_ORIGINS = False
 
-CORS_ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ALLOWED_ORIGINS",
-    "http://localhost:4200,http://127.0.0.1:5500, http://127.0.0.1:5501"
-).split(",")
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5500",
+    "http://127.0.0.1:5501",
+    "http://localhost:4200",
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_COOKIE_SAMESITE = "None"
@@ -177,8 +182,6 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "user_auth_app.authentication.CookieJWTAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.BasicAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",

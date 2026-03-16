@@ -14,7 +14,8 @@ from .utils import (
     get_jwt_max_ages,
     set_auth_cookies,
 )
-
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 User = get_user_model()
 
@@ -40,7 +41,7 @@ class RegisterView(APIView):
         except ValidationError:
             return Response({"detail": "Invalid data provided."}, status=status.HTTP_400_BAD_REQUEST)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
     """
     Handles user login. Validates user credentials. Issues refresh + access tokens. Stores tokens in secure cookies.
