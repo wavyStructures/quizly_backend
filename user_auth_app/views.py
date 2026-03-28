@@ -41,6 +41,7 @@ class RegisterView(APIView):
         except ValidationError:
             return Response({"detail": "Invalid data provided."}, status=status.HTTP_400_BAD_REQUEST)
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
     """
@@ -81,9 +82,8 @@ class LogoutView(APIView):
         refresh_token = request.COOKIES.get('refresh_token')
         if not refresh_token:
             return Response(
-                {"detail": "Refresh token missing."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                {"detail": "Invalid refresh token."},
+                status=status.HTTP_401_UNAUTHORIZED,            )
 
         token = RefreshToken(refresh_token)
         token.blacklist() 
@@ -110,8 +110,8 @@ class RefreshTokenView(APIView):
         refresh_token = request.COOKIES.get('refresh_token')
         if not refresh_token:
             return Response(
-                {"detail": "Refresh token missing."},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": "Invalid refresh token."},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         try:

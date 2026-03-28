@@ -1,7 +1,6 @@
 import os
 import tempfile
 import subprocess
-import yt_dlp
 
 
 def convert_to_mp3(input_path: str) -> str:
@@ -28,6 +27,14 @@ def convert_to_mp3(input_path: str) -> str:
 
 
 def download_youtube_audio(url: str) -> tuple[str, str]:
+    def download_youtube_audio(url: str):
+    try:
+        import yt_dlp
+    except ImportError as exc:
+        raise ImportError(
+            "yt-dlp is not installed. Install it to use YouTube download features."
+        ) from exc
+
     temp_dir = tempfile.mkdtemp()
     output_path = os.path.join(temp_dir, "%(title)s.%(ext)s")
 

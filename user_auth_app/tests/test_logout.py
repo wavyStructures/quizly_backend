@@ -22,7 +22,7 @@ class TestLogout:
         login_url = reverse("login")
         response = client.post(
             login_url,
-            {"email": "anja@example.com", "password": "Str0ngPass!123"},
+            {"username": "anja@example.com", "password": "Str0ngPass!123"},
             format="json"
         )
 

@@ -20,7 +20,7 @@ class TestTokenRefresh:
         login_url = reverse("login")
         response = client.post(
             login_url,
-            {"email": "anja@example.com", "password": "Str0ngPass!123"},
+            {"username": "anja@example.com", "password": "Str0ngPass!123"},
             format="json"
         )
 
@@ -43,4 +43,4 @@ class TestTokenRefresh:
         url = reverse("token_refresh")
         response = client.post(url)
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
