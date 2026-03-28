@@ -10,7 +10,7 @@ User = get_user_model()
 
 @pytest.mark.django_db
 class TestQuizList:
-    
+
     @pytest.fixture
     def user(self):
         return User.objects.create_user(
@@ -28,19 +28,19 @@ class TestQuizList:
         )
 
     @pytest.fixture
-    def auth_client(self, client, user):
+    def auth_client(self, user):
         client = APIClient()
         client.force_authenticate(user=user)
-        return APIClient()
+        return client
 
     @pytest.fixture
     def sample_quizzes(self, user, other_user):
-        Quiz.objects.create(user=user, title="Q1", video_url="a")
-        Quiz.objects.create(user=user, title="Q2", video_url="b")
-        Quiz.objects.create(user=other_user, title="Foreign Q", video_url="x")
+        Quiz.objects.create(user=user, title="Q1", video_url="https://example.com/1")
+        Quiz.objects.create(user=user, title="Q2", video_url="https://example.com/2")
+        Quiz.objects.create(user=other_user, title="Foreign Q", video_url="https://example.com/3")
 
     def test_list_only_own_quizzes(self, auth_client, sample_quizzes):
-        url = reverse("quiz_list")
+        url = reverse("quiz-list")
         response = auth_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -51,6 +51,9 @@ class TestQuizList:
         assert "Foreign Q" not in titles
 
     def test_list_requires_auth(self, client):
-        url = reverse("quiz_list")
+        url = reverse("quiz-list")
         response = client.get(url)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code in [
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+        ]

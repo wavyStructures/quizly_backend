@@ -15,7 +15,7 @@ class TestQuizDetail:
     def user(self):
         return User.objects.create_user(
             email="anja@example.com",
-            username="anja",
+            username="anja@example.com",
             password="Test123!"
         )
 
@@ -23,7 +23,7 @@ class TestQuizDetail:
     def other_user(self):
         return User.objects.create_user(
             email="x@example.com",
-            username="x",
+            username="x@example.com",
             password="Test123!"
         )
 
@@ -48,56 +48,46 @@ class TestQuizDetail:
         client.force_authenticate(user=other_user)
         return client
 
-    # ----------------- RETRIEVE -----------------
-
     def test_get_quiz(self, auth_client, quiz):
-        url = reverse("quiz_detail", args=[quiz.id])
+        url = reverse("quiz-detail", args=[quiz.id])
         response = auth_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["title"] == "Original Title"
 
     def test_get_other_users_quiz_denied(self, other_auth_client, quiz):
-        url = reverse("quiz_detail", args=[quiz.id])
+        url = reverse("quiz-detail", args=[quiz.id])
         response = other_auth_client.get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    # ----------------- UPDATE (PATCH) -----------------
-
     def test_patch_quiz(self, auth_client, quiz):
-        url = reverse("quiz_detail", args=[quiz.id])
-        response = auth_client.patch(url, {"title": "Updated"}, content_type="application/json")
+        url = reverse("quiz-detail", args=[quiz.id])
+        response = auth_client.patch(url, {"title": "Updated"}, format="json")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["title"] == "Updated"
 
     def test_patch_other_users_quiz_denied(self, other_auth_client, quiz):
-        url = reverse("quiz_detail", args=[quiz.id])
-
+        url = reverse("quiz-detail", args=[quiz.id])
         response = other_auth_client.patch(
             url,
             {"title": "SHOULD NOT"},
-            content_type="application/json"
+            format="json",
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-
-    # ----------------- DELETE -----------------
-
     def test_delete_quiz(self, auth_client, quiz):
-        url = reverse("quiz_detail", args=[quiz.id])
+        url = reverse("quiz-detail", args=[quiz.id])
         response = auth_client.delete(url)
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert Quiz.objects.count() == 0
 
     def test_delete_other_users_quiz_denied(self, other_auth_client, quiz):
-        url = reverse("quiz_detail", args=[quiz.id])
-
+        url = reverse("quiz-detail", args=[quiz.id])
         response = other_auth_client.delete(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert Quiz.objects.count() == 1
-

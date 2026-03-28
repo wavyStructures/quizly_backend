@@ -2,30 +2,13 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 from unittest.mock import patch
-from rest_framework.test import APIClient
-from django.contrib.auth import get_user_model
 from quizly_app.models import Quiz
 
-User = get_user_model()
 
 @pytest.mark.django_db
 class TestCreateQuiz:
 
-    @pytest.fixture
-    def user(self):
-        return User.objects.create_user(
-            email="anja@example.com",
-            username="anja@example.com",
-            password="Test123!"
-        )
-
-    @pytest.fixture
-    def auth_client(self, user):
-        client = APIClient()
-        client.force_authenticate(user=user)
-        return client
-
-    @patch("quizly_app.utils.generate_quiz_from_youtube")
+    @patch("quizly_app.views.generate_quiz_from_youtube")
     def test_create_quiz_success(self, mock_gen, auth_client, user):
         mock_gen.return_value = {
             "title": "My Test Quiz",
@@ -33,18 +16,18 @@ class TestCreateQuiz:
             "questions": [
                 {
                     "question_title": "Q1?",
-                    "question_options": ["A", "B", "C"],
-                    "answer": "A"
+                    "question_options": ["Option A1", "Option B1", "Option C1", "Option D1"],
+                    "answer": "A",
                 },
                 {
                     "question_title": "Q2?",
-                    "question_options": ["X", "Y", "Z"],
-                    "answer": "Y"
-                }
-            ]
+                    "question_options": ["Option A2", "Option B2", "Option C2", "Option D2"],
+                    "answer": "B",
+                },
+            ],
         }
 
-        url = reverse("create_quiz")
+        url = reverse("quiz-list")
         data = {"url": "https://youtube.com/watch?v=123"}
 
         response = auth_client.post(url, data, format="json")
@@ -53,20 +36,38 @@ class TestCreateQuiz:
         assert response.data["title"] == "My Test Quiz"
         assert response.data["description"] == "A test description"
         assert response.data["video_url"] == data["url"]
-        assert len(response.data.get("questions", [])) > 0
+        assert len(response.data["questions"]) == 2
 
         quiz = Quiz.objects.get(user=user)
-
         assert quiz.title == "My Test Quiz"
+        assert quiz.description == "A test description"
+        assert quiz.video_url == data["url"]
         assert quiz.questions.count() == 2
 
         titles = [q.question_title for q in quiz.questions.all()]
-
         assert "Q1?" in titles
         assert "Q2?" in titles
 
+    @patch("quizly_app.views.generate_quiz_from_youtube")
+    def test_create_quiz_generator_error(self, mock_gen, auth_client):
+        mock_gen.side_effect = ValueError("Could not transcribe audio")
+
+        url = reverse("quiz-list")
+        data = {"url": "https://youtube.com/watch?v=123"}
+
+        response = auth_client.post(url, data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["error"] == "Could not transcribe audio"
 
     def test_create_quiz_requires_auth(self, client):
-        url = reverse("create_quiz")
-        response = client.post(url, {"url": "x"}, format="json")
-        assert response.status_code in [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN]
+        url = reverse("quiz-list")
+        response = client.post(
+            url,
+            {"url": "https://youtube.com/watch?v=123"},
+            format="json",
+        )
+        assert response.status_code in [
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+        ]

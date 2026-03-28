@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -14,7 +15,7 @@ class TestLogout:
         """Creates a user, logs in, and returns a client with cookies set."""
         user = User.objects.create_user(
             email="anja@example.com",
-            username="anja",
+            username="anja@example.com",
             password="Str0ngPass!123"
         )
 
@@ -28,8 +29,7 @@ class TestLogout:
         assert response.status_code == status.HTTP_200_OK
         assert response.cookies.get("refresh_token")
 
-        return APIClient()
-
+        return client
 
     def test_logout_success(self, logged_in_client):
         url = reverse("logout")

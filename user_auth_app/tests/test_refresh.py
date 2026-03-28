@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -13,7 +14,7 @@ class TestTokenRefresh:
     def logged_in_client(self, client):
         user = User.objects.create_user(
             email="anja@example.com",
-            username="anja",
+            username="anja@example.com",
             password="Str0ngPass!123"
         )
         login_url = reverse("login")
@@ -26,7 +27,7 @@ class TestTokenRefresh:
         assert response.status_code == status.HTTP_200_OK
         assert response.cookies.get("refresh_token")
         
-        return APIClient()
+        return client
 
     def test_refresh_success(self, logged_in_client):
         url = reverse("token_refresh")

@@ -1,28 +1,33 @@
-from rest_framework.views import APIView
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
-from .permissions import UserCanAccessQuiz
 from rest_framework.response import Response
-from rest_framework import status, generics
-
 from .models import Quiz, Question
-from .serializers import (
-    QuizSerializer,
-    CreateQuizSerializer
-)
+from .serializers import QuizSerializer, CreateQuizSerializer
 from .utils import generate_quiz_from_youtube
 
 
-class CreateQuizView(APIView):
+class QuizViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
+    serializer_class = QuizSerializer
 
-    def post(self, request):
+    def get_queryset(self):
+        return Quiz.objects.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        print("REQUEST.DATA:", request.data)
+
+
         serializer = CreateQuizSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         video_url = serializer.validated_data["url"]
 
-        data = generate_quiz_from_youtube(video_url)
-        
+        try:
+            data = generate_quiz_from_youtube(video_url)
+        except ValueError as e:
+            print("CREATE QUIZ ERROR:", repr(e))
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
         quiz = Quiz.objects.create(
             user=request.user,
             title=data["title"],
@@ -38,28 +43,6 @@ class CreateQuizView(APIView):
                 answer=q["answer"]
             )
 
-        return Response(
-            QuizSerializer(quiz).data,
-            status=status.HTTP_201_CREATED
-        )
-
-
-class QuizListView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        quizzes = Quiz.objects.filter(user=request.user)
-        return Response(
-            QuizSerializer(quizzes, many=True).data,
-            status=status.HTTP_200_OK
-        )
-
-
-class QuizDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Quiz.objects.all()
-    serializer_class = QuizSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        # User can only access own quizzes
-        return Quiz.objects.filter(user=self.request.user)
+        return Response(QuizSerializer(quiz).data, status=status.HTTP_201_CREATED)
+    
+   

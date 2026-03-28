@@ -13,7 +13,7 @@ class TestLogin:
     def user(self):
         return User.objects.create_user(
             email="anja@example.com",
-            username="anja",
+            username="anja@example.com",
             password="Str0ngPass!123"
         )
 
@@ -29,6 +29,6 @@ class TestLogin:
 
     def test_login_wrong_credentials(self, client, user):
         url = reverse("login")
-        data = {"email": "anja@example.com", "password": "Str0ngPass!123"}
+        data = {"email": "anja@example.com", "password": "wrongpassword!123"}
         response = client.post(url, data, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
