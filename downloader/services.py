@@ -27,7 +27,6 @@ def convert_to_mp3(input_path: str) -> str:
 
 
 def download_youtube_audio(url: str) -> tuple[str, str]:
-    def download_youtube_audio(url: str):
     try:
         import yt_dlp
     except ImportError as exc:

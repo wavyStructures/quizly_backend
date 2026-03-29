@@ -104,11 +104,13 @@ Server will be available at:
 - POST /api/logout/ → Logout  
 - POST /api/refresh/ → Refresh token  
 
-### 📝 Quizzes
+### 📝 Quiz Management
 
-- POST /api/createQuiz/ → Create a new quiz  
+- POST /api/quizzes/ → Create a new quiz (from YouTube URL)  
 - GET /api/quizzes/ → List user’s quizzes  
 - GET /api/quizzes/{id}/ → Retrieve quiz details  
+- PATCH /api/quizzes/{id}/ → Update quiz (partial update)  
+- DELETE /api/quizzes/{id}/ → Delete quiz  
 
 ---
 

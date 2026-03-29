@@ -29,7 +29,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
-            'username': {'required': True}
+            'username': {'required': False}
         }
 
     def validate(self, data):
@@ -40,10 +40,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("confirmed_password")
+        email = validated_data["email"]
+
         return User.objects.create_user(
-            username=validated_data["username"],
-            email=validated_data["email"],
-            password=validated_data["password"]  
+            username=email,
+            email=email,
+            password=validated_data["password"]
         )
 
 
@@ -51,17 +53,18 @@ class LoginSerializer(serializers.Serializer):
     """
     Serializer for authenticating users.
     """
-
-    username = serializers.CharField()
+    email = serializers.EmailField(required=False)
+    username = serializers.CharField(required=False)
     password = serializers.CharField(write_only=True)
     
     def validate(self, attrs):
-        username = attrs.get('username')
+        email = attrs.get('email') or attrs.get('username')
         password = attrs.get('password')
         
-        user = authenticate(username=username, password=password)
+        user = authenticate(username=email, password=password)
+
         if not user:
-            raise serializers.ValidationError("Invalid username or password.")
+            raise serializers.ValidationError("Invalid email or password.")
 
         attrs["user"] = user
         return attrs
