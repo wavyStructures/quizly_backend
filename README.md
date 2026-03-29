@@ -64,6 +64,19 @@ git clone https://github.com/your-username/quizly_backend.git
 cd quizly_backend
 
 
+## Environment Variables
+
+This project requires a Google API key to generate quizzes.
+
+### 1. Create `.env` file
+
+In the root directory of the project, create a file named `.env`.
+
+You can copy the provided template:
+
+```bash
+cp .env.template .env
+
 
 ## 📦 Setup & Usage Guide
 
