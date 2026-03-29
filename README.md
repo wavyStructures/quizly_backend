@@ -74,7 +74,6 @@ In the root directory of the project, create a file named `.env`.
 
 You can copy the provided template:
 
-```bash
 cp .env.template .env
 
 
