@@ -9,6 +9,10 @@ __pycache__/
 *.pot
 *.pyc
 
+*.sqlite3
+media/
+staticfiles/
+
 db.sqlite3
 .vscode/
 

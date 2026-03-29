@@ -60,16 +60,15 @@ The project is designed as a clean, scalable REST API with proper testing and au
 
 ### 🔹 Clone the Repository
 
-```bash
 git clone https://github.com/your-username/quizly_backend.git
 cd quizly_backend
+
 
 
 ## 📦 Setup & Usage Guide
 
 ### 🔹 Create Virtual Environment
 
-```bash
 python -m venv env
 source env/bin/activate   # macOS/Linux
 env\Scripts\activate      # Windows
@@ -78,13 +77,11 @@ env\Scripts\activate      # Windows
 
 ### 🔹 Install Dependencies
 
-```bash
 pip install -r requirements.txt
 
 
 ### 🔹 Apply Migrations
 
-```bash
 python manage.py migrate
 
 
