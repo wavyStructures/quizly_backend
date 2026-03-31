@@ -40,10 +40,11 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("confirmed_password")
+        username=validated_data["username"],
         email = validated_data["email"]
 
         return User.objects.create_user(
-            username=email,
+            username=username,
             email=email,
             password=validated_data["password"]
         )
@@ -58,10 +59,15 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
     
     def validate(self, attrs):
-        email = attrs.get('email') or attrs.get('username')
+        email = attrs.get('email')
         password = attrs.get('password')
         
         user = authenticate(username=email, password=password)
+
+        user = authenticate(
+    username=attrs["username"],
+    password=attrs["password"]
+)
 
         if not user:
             raise serializers.ValidationError("Invalid email or password.")
