@@ -7,7 +7,6 @@ from .models import Video
 from .tasks import convert_to_hls, generate_thumbnail
 
 
-
 @receiver(post_delete, sender=Video)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
     """
