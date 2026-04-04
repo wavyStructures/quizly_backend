@@ -108,28 +108,28 @@ def build_transcription_prompt() -> str:
 
 def build_question_prompt(transcript: str, video_title: str) -> str:
     return f"""
-Erstelle 5 Multiple-Choice-Fragen zu folgendem Video.
+Create exactly 10 multiple-choice questions in English about the following video.
 
-Titel:
+Title:
 {video_title}
 
-Transkript:
+Transcript:
 ---
 {transcript}
 ---
 
-WICHTIG:
-- Antworte nur mit gültigem JSON.
-- Kein Markdown.
-- Keine Erklärung.
-- Genau 5 Fragen.
-- Jede Frage muss genau 4 Antwortoptionen haben.
-- "answer" muss nur "A", "B", "C" oder "D" sein.
+IMPORTANT:
+- Return only valid JSON.
+- No Markdown.
+- No explanation.
+- Exactly 10 questions.
+- Each question must have exactly 4 answer options.
+- "answer" must only be "A", "B", "C", or "D".
 
 Format:
 [
   {{
-    "question": "Fragetext",
+    "question": "Question text",
     "options": ["Option A", "Option B", "Option C", "Option D"],
     "answer": "A"
   }}
@@ -208,8 +208,8 @@ def generate_questions_with_gemini(transcript: str, video_title: str) -> dict:
 
     formatted_questions = [validate_question_item(item) for item in questions_raw]
 
-    if len(formatted_questions) != 5:
-        raise ValueError("Gemini must return exactly 5 questions.")
+    if len(formatted_questions) != 10:
+        raise ValueError("Gemini must return exactly 10 questions.")
 
     return {
         "title": video_title,
