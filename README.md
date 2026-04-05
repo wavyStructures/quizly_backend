@@ -26,6 +26,20 @@ Important settings:
 Make sure your `.env` and settings are configured accordingly.
 
 
+### Example `.env`
+
+```env
+GEMINI_API_KEY=your_api_key_here
+
+SECRET_KEY=your_secret_key
+DEBUG=True
+
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+CSRF_TRUSTED_ORIGINS=http://127.0.0.1:5500
+CORS_ALLOWED_ORIGINS=http://127.0.0.1:5500
+CORS_ALLOW_CREDENTIALS=True
+
 
 ## 🚀 Features
 
