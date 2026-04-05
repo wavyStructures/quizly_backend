@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.conf import settings
-
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 
@@ -29,7 +28,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
-            'username': {'required': False}
+            'username': {'required': True}
         }
 
     def validate(self, data):
@@ -40,13 +39,16 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("confirmed_password")
-        username=validated_data["username"],
-        email = validated_data["email"]
+
+        username=validated_data["username"]
+        email=validated_data["email"]
+        password=validated_data["password"]
+
 
         return User.objects.create_user(
             username=username,
             email=email,
-            password=validated_data["password"]
+            password=password,
         )
 
 
@@ -54,23 +56,17 @@ class LoginSerializer(serializers.Serializer):
     """
     Serializer for authenticating users.
     """
-    email = serializers.EmailField(required=False)
-    username = serializers.CharField(required=False)
-    password = serializers.CharField(write_only=True)
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
     
     def validate(self, attrs):
-        email = attrs.get('email')
+        username = attrs.get('username')
         password = attrs.get('password')
         
-        user = authenticate(username=email, password=password)
-
-        user = authenticate(
-    username=attrs["username"],
-    password=attrs["password"]
-)
+        user = authenticate(username=username, password=password)
 
         if not user:
-            raise serializers.ValidationError("Invalid email or password.")
+            raise serializers.ValidationError("Invalid username or password.")
 
         attrs["user"] = user
         return attrs

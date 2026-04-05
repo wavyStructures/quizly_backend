@@ -34,10 +34,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='django-insecure-@#x5h3zj!g+8g1v@2^
 DEBUG = True
 
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "example.com").split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5500",
     "http://127.0.0.1:5501",
+    "http://localhost:4200",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = False
