@@ -13,14 +13,14 @@ class TestTokenRefresh:
     @pytest.fixture
     def logged_in_client(self, client):
         user = User.objects.create_user(
+            username="anja399",
             email="anja@example.com",
-            username="anja@example.com",
             password="Str0ngPass!123"
         )
         login_url = reverse("login")
         response = client.post(
             login_url,
-            {"username": "anja@example.com", "password": "Str0ngPass!123"},
+            {"username": "anja399", "password": "Str0ngPass!123"},
             format="json"
         )
 
@@ -35,7 +35,6 @@ class TestTokenRefresh:
 
         assert response.status_code == status.HTTP_200_OK
         assert "access" in response.data
-
         assert response.cookies.get("access_token")
         assert response.cookies.get("refresh_token")
 

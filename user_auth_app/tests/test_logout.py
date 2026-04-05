@@ -14,15 +14,15 @@ class TestLogout:
     def logged_in_client(self, client):
         """Creates a user, logs in, and returns a client with cookies set."""
         user = User.objects.create_user(
-            email="anja@example.com",
-            username="anja@example.com",
+            username="anja399",
+            email="anja@example.com",          
             password="Str0ngPass!123"
         )
 
         login_url = reverse("login")
         response = client.post(
             login_url,
-            {"username": "anja@example.com", "password": "Str0ngPass!123"},
+            {"username": "anja399", "password": "Str0ngPass!123"},
             format="json"
         )
 
@@ -45,7 +45,6 @@ class TestLogout:
 
     def test_logout_without_refresh_token(self, client):
         url = reverse("logout")
-
         response = client.post(url)
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
