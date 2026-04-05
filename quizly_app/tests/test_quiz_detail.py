@@ -14,16 +14,16 @@ class TestQuizDetail:
     @pytest.fixture
     def user(self):
         return User.objects.create_user(
+            username="anja399",
             email="anja@example.com",
-            username="anja@example.com",
             password="Test123!"
         )
 
     @pytest.fixture
     def other_user(self):
         return User.objects.create_user(
+            username="otheruser",
             email="x@example.com",
-            username="x@example.com",
             password="Test123!"
         )
 
