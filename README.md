@@ -25,20 +25,6 @@ Important settings:
 
 Make sure your `.env` and settings are configured accordingly.
 
-
-### Example `.env`
-
-GEMINI_API_KEY=your_api_key_here
-
-SECRET_KEY=your_secret_key
-DEBUG=True
-
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-CSRF_TRUSTED_ORIGINS=http://127.0.0.1:5500
-CORS_ALLOWED_ORIGINS=http://127.0.0.1:5500
-CORS_ALLOW_CREDENTIALS=True
-
 ---
 
 
@@ -96,13 +82,26 @@ cd quizly_backend
 
 This project requires a Google API key to generate quizzes.
 
-### 1. Create `.env` file
+### Create `.env` file
 
 In the root directory of the project, create a file named `.env`.
 
 You can copy the provided template:
 
 cp .env.template .env
+
+### Example `.env`
+
+GEMINI_API_KEY=your_api_key_here
+
+SECRET_KEY=your_secret_key
+DEBUG=True
+
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+CSRF_TRUSTED_ORIGINS=http://127.0.0.1:5500
+CORS_ALLOWED_ORIGINS=http://127.0.0.1:5500
+CORS_ALLOW_CREDENTIALS=True
 
 
 ## 📦 Setup & Usage Guide
