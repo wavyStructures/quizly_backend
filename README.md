@@ -14,6 +14,19 @@ The project is designed as a clean, scalable REST API with proper testing and au
 
 ---
 
+## 🌐 Frontend Integration
+
+This backend is designed to work with an external frontend (e.g. running on `http://127.0.0.1:5500`).
+
+Important settings:
+- CORS is enabled for the frontend origin
+- Cookies are used for authentication (JWT in HTTP-only cookies)
+- Requests must include credentials (`credentials: "include"`)
+
+Make sure your `.env` and settings are configured accordingly.
+
+
+
 ## 🚀 Features
 
 - 🔑 **Authentication**
@@ -22,7 +35,7 @@ The project is designed as a clean, scalable REST API with proper testing and au
 
 - 🧑‍💻 **User System**
   - Custom user model
-  - Email-based login support
+  - Login using username
 
 - 📝 **Quiz Management**
   - Create quizzes
