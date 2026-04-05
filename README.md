@@ -28,7 +28,6 @@ Make sure your `.env` and settings are configured accordingly.
 
 ### Example `.env`
 
-env
 GEMINI_API_KEY=your_api_key_here
 
 SECRET_KEY=your_secret_key
