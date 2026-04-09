@@ -75,6 +75,22 @@ def normalize_answer(answer: str) -> str:
     return answer[0] if answer and answer[0] in VALID_ANSWERS else answer
 
 
+def clean_option_text(option: str) -> str:
+    """
+    Remove leading answer labels like:
+    'A. Paris', 'B) London', 'C - Berlin', 'D: Rome'
+    so the frontend does not render labels twice.
+    """
+    if not isinstance(option, str):
+        raise ValueError("Each option must be a string.")
+
+    option = option.strip()
+
+    option = re.sub(r"^[A-Da-d][\)\.\:\-\s]+", "", option).strip()
+
+    return option
+
+
 def validate_question_item(item: dict) -> dict:
     """
     Validate and normalize a single Gemini-generated question item.
@@ -88,12 +104,13 @@ def validate_question_item(item: dict) -> dict:
         raise ValueError("A generated question is missing 'question'.")
     if not isinstance(options, list) or len(options) != 4:
         raise ValueError("Each generated question must have exactly 4 options.")
+    cleaned_options = [clean_option_text(option) for option in options]
     if answer not in VALID_ANSWERS:
         raise ValueError("Each generated question must have answer A, B, C, or D.")
 
     return {
-        "question_title": question,
-        "question_options": options,
+        "question_title": question.strip(),
+        "question_options": cleaned_options,
         "answer": answer,
     }
 
@@ -125,6 +142,12 @@ IMPORTANT:
 - Exactly 10 questions.
 - Each question must have exactly 4 answer options.
 - "answer" must only be "A", "B", "C", or "D".
+- Do NOT prefix answer options with A, B, C, or D.
+- Do NOT write options like "A. Paris" or "B) London".
+- Each option must contain only the plain answer text.
+
+Example:
+"options": ["Paris", "London", "Berlin", "Rome"]
 
 Format:
 [
